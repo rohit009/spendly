@@ -94,6 +94,69 @@
 
 .btn-outline-new:hover { background: var(--accent); border-color: var(--accent); }
 
+button.btn-outline-new {
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ */
+/* Demo video modal                                                    */
+/* ------------------------------------------------------------------ */
+
+.video-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 15, 15, 0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.video-modal-overlay.is-open {
+    display: flex;
+}
+
+.video-modal {
+    position: relative;
+    background: var(--paper-card);
+    border-radius: var(--radius-md);
+    width: 100%;
+    max-width: 900px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.video-modal-close {
+    position: absolute;
+    top: -2.5rem;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+.video-modal-body {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.video-modal-body iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 /* ------------------------------------------------------------------ */
 /* Dashboard mock                                                       */
 /* ------------------------------------------------------------------ */
