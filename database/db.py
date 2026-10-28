@@ -63,12 +63,9 @@ def seed_db():
         conn.close()
         return
 
-    # pbkdf2 rather than Werkzeug's default scrypt, which needs OpenSSL
-    # support that macOS's system Python (LibreSSL) lacks.
-    password_hash = generate_password_hash("demo123", method="pbkdf2:sha256")
     cursor = conn.execute(
         "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
-        ("Demo User", "demo@spendly.com", password_hash),
+        ("Demo User", "demo@spendly.com", generate_password_hash("demo123")),
     )
     user_id = cursor.lastrowid
 
