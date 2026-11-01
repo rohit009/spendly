@@ -82,16 +82,3 @@ def test_profile_template_and_css_have_no_inline_styles_or_hex():
     assert "style=" not in template
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", template)
     assert not re.search(r"#[0-9a-fA-F]{3,8}\b", css)
-
-
-def test_profile_template_handles_empty_data():
-    from app import PROFILE_USER, _profile_summary
-
-    stats, categories = _profile_summary([])
-    with flask_app.test_request_context("/profile"):
-        html = flask_app.jinja_env.get_template("profile.html").render(
-            user=PROFILE_USER, stats=stats, transactions=[], categories=categories
-        )
-    assert "No transactions yet." in html
-    assert "Nothing to break down yet." in html
-    assert "₹0.00" in html

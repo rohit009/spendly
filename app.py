@@ -5,6 +5,12 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db, seed_db
+from database.queries import (
+    get_category_breakdown,
+    get_recent_transactions,
+    get_summary_stats,
+    get_user_by_id,
+)
 
 app = Flask(__name__)
 # The fallback key is for local development only; set SECRET_KEY in production.
@@ -137,56 +143,24 @@ def inr(value):
     return f"{sign}₹{whole}.{decimals}"
 
 
-# Hardcoded demo data for the profile page UI (Step 4). Step 5 replaces this
-# with real queries against the logged-in user's rows.
-PROFILE_USER = {
-    "name": "Demo User",
-    "email": "demo@spendly.com",
-    "initials": "DU",
-    "member_since": "January 2026",
-}
-
-PROFILE_TRANSACTIONS = [
-    {"date": "25 Oct 2026", "description": "Dinner out", "category": "Food", "amount": 780},
-    {"date": "20 Oct 2026", "description": "Gift", "category": "Other", "amount": 300},
-    {"date": "15 Oct 2026", "description": "Shoes", "category": "Shopping", "amount": 2299},
-    {"date": "12 Oct 2026", "description": "Movie tickets", "category": "Entertainment", "amount": 499},
-    {"date": "08 Oct 2026", "description": "Pharmacy", "category": "Health", "amount": 650},
-    {"date": "05 Oct 2026", "description": "Electricity bill", "category": "Bills", "amount": 1850},
-    {"date": "03 Oct 2026", "description": "Auto rickshaw", "category": "Transport", "amount": 120},
-    {"date": "01 Oct 2026", "description": "Groceries", "category": "Food", "amount": 450},
-]
-
-
-def _profile_summary(transactions):
-    totals = {}
-    for t in transactions:
-        totals[t["category"]] = totals.get(t["category"], 0) + t["amount"]
-    grand_total = sum(totals.values())
-    categories = [
-        {"name": name, "total": total, "percent": round(total * 100 / grand_total)}
-        for name, total in sorted(totals.items(), key=lambda item: -item[1])
-    ]
-    stats = {
-        "total_spent": grand_total,
-        "count": len(transactions),
-        "top_category": categories[0]["name"] if categories else None,
-    }
-    return stats, categories
-
-
 @app.route("/profile")
 def profile():
-    if not session.get("user_id"):
+    user_id = session.get("user_id")
+    if not user_id:
         return redirect(url_for("login"))
 
-    stats, categories = _profile_summary(PROFILE_TRANSACTIONS)
+    user = get_user_by_id(user_id)
+    if user is None:
+        # The session points at a user that no longer exists.
+        session.clear()
+        return redirect(url_for("login"))
+
     return render_template(
         "profile.html",
-        user=PROFILE_USER,
-        stats=stats,
-        transactions=PROFILE_TRANSACTIONS,
-        categories=categories,
+        user=user,
+        stats=get_summary_stats(user_id),
+        transactions=get_recent_transactions(user_id),
+        categories=get_category_breakdown(user_id),
     )
 
 

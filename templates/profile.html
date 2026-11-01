@@ -25,11 +25,11 @@
         </div>
         <div class="stat-card">
             <span class="stat-label">Transactions</span>
-            <span class="stat-value">{{ stats.count }}</span>
+            <span class="stat-value">{{ stats.transaction_count }}</span>
         </div>
         <div class="stat-card">
             <span class="stat-label">Top category</span>
-            <span class="stat-value">{{ stats.top_category or "—" }}</span>
+            <span class="stat-value">{{ stats.top_category }}</span>
         </div>
     </section>
 
@@ -71,9 +71,9 @@
             <li class="cat-row">
                 <div class="cat-head">
                     <span class="cat-name">{{ c.name }}</span>
-                    <span class="cat-amount">{{ c.total|inr }} <span class="cat-percent">({{ c.percent }}%)</span></span>
+                    <span class="cat-amount">{{ c.amount|inr }} <span class="cat-percent">({{ c.pct }}%)</span></span>
                 </div>
-                <progress class="cat-bar" max="100" value="{{ c.percent }}">{{ c.percent }}%</progress>
+                <progress class="cat-bar" max="100" value="{{ c.pct }}">{{ c.pct }}%</progress>
             </li>
             {% endfor %}
         </ul>
