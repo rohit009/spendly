@@ -36,11 +36,10 @@ def test_get_login_renders_form(client):
     assert client.get("/login").status_code == 200
 
 
-def test_valid_login_redirects_to_home_and_sets_session(client):
+def test_valid_login_redirects_to_profile_and_sets_session(client):
     resp = login(client)
     assert resp.status_code == 302
-    assert resp.headers["Location"].endswith("/")
-    assert not resp.headers["Location"].endswith("/login")
+    assert resp.headers["Location"].endswith("/profile")
     assert session_user_id(client) == demo_id()
 
 
@@ -82,11 +81,11 @@ def test_failed_login_keeps_email_but_not_password(client):
 
 
 @pytest.mark.parametrize("path", ["/login", "/register"])
-def test_auth_pages_redirect_home_when_already_logged_in(client, path):
+def test_auth_pages_redirect_to_profile_when_already_logged_in(client, path):
     login(client)
     resp = client.get(path)
     assert resp.status_code == 302
-    assert resp.headers["Location"].endswith("/")
+    assert resp.headers["Location"].endswith("/profile")
 
 
 def test_register_post_blocked_when_logged_in(client):
