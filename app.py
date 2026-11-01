@@ -27,7 +27,7 @@ def landing():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if session.get("user_id"):
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
 
     if request.method == "GET":
         return render_template("register.html")
@@ -68,7 +68,7 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("user_id"):
-        return redirect(url_for("landing"))
+        return redirect(url_for("profile"))
 
     if request.method == "GET":
         return render_template("login.html")
@@ -97,7 +97,7 @@ def login():
 
     session.clear()
     session["user_id"] = user["id"]
-    return redirect(url_for("landing"))
+    return redirect(url_for("profile"))
 
 
 @app.route("/terms")
@@ -120,9 +120,74 @@ def logout():
     return redirect(url_for("landing"))
 
 
+@app.template_filter("inr")
+def inr(value):
+    """Format a number as rupees with Indian digit grouping, e.g. ₹1,23,456.00."""
+    sign = "-" if value < 0 else ""
+    whole, decimals = f"{abs(value):.2f}".split(".")
+    if len(whole) > 3:
+        head, tail = whole[:-3], whole[-3:]
+        groups = []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            groups.insert(0, head)
+        whole = ",".join(groups + [tail])
+    return f"{sign}₹{whole}.{decimals}"
+
+
+# Hardcoded demo data for the profile page UI (Step 4). Step 5 replaces this
+# with real queries against the logged-in user's rows.
+PROFILE_USER = {
+    "name": "Demo User",
+    "email": "demo@spendly.com",
+    "initials": "DU",
+    "member_since": "January 2026",
+}
+
+PROFILE_TRANSACTIONS = [
+    {"date": "25 Oct 2026", "description": "Dinner out", "category": "Food", "amount": 780},
+    {"date": "20 Oct 2026", "description": "Gift", "category": "Other", "amount": 300},
+    {"date": "15 Oct 2026", "description": "Shoes", "category": "Shopping", "amount": 2299},
+    {"date": "12 Oct 2026", "description": "Movie tickets", "category": "Entertainment", "amount": 499},
+    {"date": "08 Oct 2026", "description": "Pharmacy", "category": "Health", "amount": 650},
+    {"date": "05 Oct 2026", "description": "Electricity bill", "category": "Bills", "amount": 1850},
+    {"date": "03 Oct 2026", "description": "Auto rickshaw", "category": "Transport", "amount": 120},
+    {"date": "01 Oct 2026", "description": "Groceries", "category": "Food", "amount": 450},
+]
+
+
+def _profile_summary(transactions):
+    totals = {}
+    for t in transactions:
+        totals[t["category"]] = totals.get(t["category"], 0) + t["amount"]
+    grand_total = sum(totals.values())
+    categories = [
+        {"name": name, "total": total, "percent": round(total * 100 / grand_total)}
+        for name, total in sorted(totals.items(), key=lambda item: -item[1])
+    ]
+    stats = {
+        "total_spent": grand_total,
+        "count": len(transactions),
+        "top_category": categories[0]["name"] if categories else None,
+    }
+    return stats, categories
+
+
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    stats, categories = _profile_summary(PROFILE_TRANSACTIONS)
+    return render_template(
+        "profile.html",
+        user=PROFILE_USER,
+        stats=stats,
+        transactions=PROFILE_TRANSACTIONS,
+        categories=categories,
+    )
 
 
 @app.route("/expenses/add")

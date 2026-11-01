@@ -8,10 +8,10 @@ Make `/login` and `/logout` work. The form in `login.html` already POSTs email a
 - Step 2 — Registration (users with hashed passwords exist; it redirects to `/login`).
 
 ## Routes
-- `GET /login` — render the sign-in form; if already logged in, redirect to `/` — public (already exists)
-- `POST /login` — validate input, check the credentials, store `user_id` in the session and redirect to `/` (home) on success, re-render the form with an `error` on failure — public
+- `GET /login` — render the sign-in form; if already logged in, redirect to `/profile` — public (already exists)
+- `POST /login` — validate input, check the credentials, store `user_id` in the session and redirect to `/profile` on success, re-render the form with an `error` on failure — public
 - `GET /logout` — clear the session and redirect to `/` (landing) — public (safe to call when not logged in)
-- `GET` and `POST /register` (existing) — if already logged in, redirect to `/` without creating a user — public
+- `GET` and `POST /register` (existing) — if already logged in, redirect to `/profile` without creating a user — public
 
 View functions stay named `login` and `logout` (templates use `url_for`).
 
@@ -54,12 +54,12 @@ No new dependencies (`session` is part of Flask; `check_password_hash` is part o
 
 ## Definition of done
 - [ ] `GET /login` renders the form (200) when logged out
-- [ ] Logging in as `demo@spendly.com` / `demo123` redirects (302) to `/` (home) and sets `session["user_id"]` to the demo user's id
+- [ ] Logging in as `demo@spendly.com` / `demo123` redirects (302) to `/profile` and sets `session["user_id"]` to the demo user's id
 - [ ] Email matching is case- and whitespace-insensitive (`  Demo@Spendly.com ` works)
 - [ ] A wrong password and an unknown email both re-render the form (200) with "Invalid email or password." and set no session
 - [ ] An empty email or empty password re-renders the form with an error and sets no session
 - [ ] After a failed login, the email field keeps its value and the password field is empty
-- [ ] `GET /login`, `GET /register` and `POST /register` while logged in redirect to `/` and create no user
+- [ ] `GET /login`, `GET /register` and `POST /register` while logged in redirect to `/profile` and create no user
 - [ ] `GET /logout` clears the session, redirects (302) to `/`, and works when not logged in
 - [ ] The navbar shows "Sign in" / "Get started" when logged out and "Profile" / "Sign out" when logged in
 - [ ] A user created via `/register` can then log in with the same credentials
