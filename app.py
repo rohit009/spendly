@@ -1,5 +1,7 @@
 import os
+import re
 import sqlite3
+from datetime import datetime
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -143,6 +145,45 @@ def inr(value):
     return f"{sign}₹{whole}.{decimals}"
 
 
+FILTER_ERROR = "Enter valid dates, with From on or before To."
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+@app.template_filter("date_label")
+def date_label(value):
+    """Format an ISO date string (YYYY-MM-DD) as e.g. 01 Nov 2026."""
+    return datetime.strptime(value, "%Y-%m-%d").strftime("%d %b %Y")
+
+
+def _parse_date(raw):
+    """Return raw if it is a real zero-padded YYYY-MM-DD date, None if blank.
+
+    Raises ValueError otherwise. strptime alone also accepts 2026-3-1, which
+    would break the text comparison against stored ISO dates in SQL.
+    """
+    if not raw:
+        return None
+    if not ISO_DATE.fullmatch(raw):
+        raise ValueError(raw)
+    datetime.strptime(raw, "%Y-%m-%d")
+    return raw
+
+
+def _parse_range(raw_from, raw_to):
+    """Validate the stripped ?from= / ?to= values (both optional).
+
+    Returns (date_from, date_to, error). Anything invalid returns
+    (None, None, FILTER_ERROR) so the page falls back to unfiltered data.
+    """
+    try:
+        date_from, date_to = _parse_date(raw_from), _parse_date(raw_to)
+    except ValueError:
+        return None, None, FILTER_ERROR
+    if date_from and date_to and date_from > date_to:
+        return None, None, FILTER_ERROR
+    return date_from, date_to, None
+
+
 @app.route("/profile")
 def profile():
     user_id = session.get("user_id")
@@ -155,12 +196,27 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
+    # What the user typed is echoed back into the form, even when it is invalid.
+    form_from = request.args.get("from", "").strip()
+    form_to = request.args.get("to", "").strip()
+    date_from, date_to, filter_error = _parse_range(form_from, form_to)
+
     return render_template(
         "profile.html",
         user=user,
-        stats=get_summary_stats(user_id),
-        transactions=get_recent_transactions(user_id),
-        categories=get_category_breakdown(user_id),
+        stats=get_summary_stats(user_id, date_from=date_from, date_to=date_to),
+        transactions=get_recent_transactions(
+            user_id, date_from=date_from, date_to=date_to
+        ),
+        categories=get_category_breakdown(
+            user_id, date_from=date_from, date_to=date_to
+        ),
+        date_from=date_from,
+        date_to=date_to,
+        filter_active=bool(date_from or date_to),
+        filter_error=filter_error,
+        form_from=form_from,
+        form_to=form_to,
     )
 
 

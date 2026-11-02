@@ -18,6 +18,31 @@
         </div>
     </section>
 
+    {% if filter_error %}
+    <p class="filter-error" role="alert">{{ filter_error }}</p>
+    {% endif %}
+    <form class="filter-form" method="get" action="{{ url_for('profile') }}" aria-label="Filter by date">
+        <div class="filter-field">
+            <label for="filter-from">From</label>
+            <input class="form-input" type="date" id="filter-from" name="from" value="{{ form_from }}">
+        </div>
+        <div class="filter-field">
+            <label for="filter-to">To</label>
+            <input class="form-input" type="date" id="filter-to" name="to" value="{{ form_to }}">
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn-primary">Apply</button>
+            <a href="{{ url_for('profile') }}" class="btn-ghost">Clear</a>
+        </div>
+    </form>
+    {% if filter_active %}
+    <p class="filter-note">
+        {%- if date_from and date_to %}Showing {{ date_from|date_label }} to {{ date_to|date_label }}
+        {%- elif date_from %}Showing {{ date_from|date_label }} onwards
+        {%- else %}Showing up to {{ date_to|date_label }}{% endif -%}
+    </p>
+    {% endif %}
+
     <section class="stat-row" aria-label="Spending summary">
         <div class="stat-card">
             <span class="stat-label">Total spent</span>
@@ -59,7 +84,7 @@
             </table>
         </div>
         {% else %}
-        <p class="empty-state">No transactions yet.</p>
+        <p class="empty-state">{{ 'No transactions in this date range.' if filter_active else 'No transactions yet.' }}</p>
         {% endif %}
     </section>
 
@@ -78,7 +103,7 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="empty-state">Nothing to break down yet.</p>
+        <p class="empty-state">{{ 'Nothing to break down in this date range.' if filter_active else 'Nothing to break down yet.' }}</p>
         {% endif %}
     </section>
 
