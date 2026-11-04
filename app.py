@@ -295,6 +295,13 @@ def _render_expense_form(values, error=None):
     )
 
 
+@app.route("/analytics")
+def analytics():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    return render_template("analytics.html")
+
+
 @app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
     user_id = session.get("user_id")
