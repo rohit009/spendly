@@ -136,6 +136,17 @@
     margin-bottom: 1rem;
 }
 
+.panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.panel-head .panel-title { margin-bottom: 0; }
+
 /* Transactions */
 .table-scroll { overflow-x: auto; }
 

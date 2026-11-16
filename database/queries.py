@@ -1,7 +1,8 @@
-"""Read-only query helpers for the profile page (no Flask imports).
+"""Query helpers for the profile and expense pages (no Flask imports).
 
-Every helper opens its own connection with get_db() and closes it before
-returning. All SQL is parameterised and scoped to a single user_id.
+All helpers are read-only except create_expense (Step 7). Every helper
+opens its own connection with get_db() and closes it before returning.
+All SQL is parameterised and scoped to a single user_id.
 
 The file is split into marked sections so that several people can fill in
 different functions at the same time. Only edit inside your own section.
@@ -139,3 +140,24 @@ def get_category_breakdown(user_id, date_from=None, date_to=None):
     result[0]["pct"] += 100 - sum(item["pct"] for item in result)
     return result
 # === END SECTION 3 =========================================================
+
+
+# === SECTION 4: ADD EXPENSE (Step 7) =======================================
+def create_expense(user_id, amount, category, date, description=None):
+    """Insert one expense for user_id and return its new id.
+
+    The caller must validate the values first; this only writes them.
+    A blank description is stored as NULL.
+    """
+    conn = get_db()
+    try:
+        cursor = conn.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, date, description or None),
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
+# === END SECTION 4 =========================================================
