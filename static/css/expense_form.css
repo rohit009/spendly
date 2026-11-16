@@ -1,0 +1,56 @@
+/* Add / edit expense form (Step 7, reused by Step 8).
+   Layout, cards and inputs come from style.css (auth-* and form-* classes). */
+
+.amount-field {
+    position: relative;
+}
+
+.amount-prefix {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.amount-field .form-input {
+    padding-left: 2rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.form-select {
+    appearance: none;
+    cursor: pointer;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--ink-muted) 50%),
+        linear-gradient(135deg, var(--ink-muted) 50%, transparent 50%);
+    background-position:
+        calc(100% - 1.1rem) 50%,
+        calc(100% - 0.8rem) 50%;
+    background-size: 0.3rem 0.3rem;
+    background-repeat: no-repeat;
+    padding-right: 2.25rem;
+}
+
+.optional {
+    color: var(--ink-faint);
+    font-weight: 400;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+    .auth-section { padding: 2rem 1rem; }
+    .auth-card { padding: 1.5rem 1.25rem; }
+    .form-actions > * {
+        flex: 1 1 100%;
+        text-align: center;
+    }
+}

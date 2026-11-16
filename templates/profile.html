@@ -59,7 +59,10 @@
     </section>
 
     <section class="panel">
-        <h2 class="panel-title">Transaction history</h2>
+        <div class="panel-head">
+            <h2 class="panel-title">Transaction history</h2>
+            <a href="{{ url_for('add_expense') }}" class="btn-primary">Add expense</a>
+        </div>
         {% if transactions %}
         <div class="table-scroll" role="region" aria-label="Transaction history table" tabindex="0">
             <table class="txn-table">

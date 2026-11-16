@@ -1,22 +1,32 @@
 import os
 import re
+import secrets
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 
 from flask import Flask, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from database.db import get_db, init_db, seed_db
+from database.db import CATEGORIES, get_db, init_db, seed_db
 from database.queries import (
+    create_expense,
     get_category_breakdown,
     get_recent_transactions,
     get_summary_stats,
     get_user_by_id,
 )
 
+MAX_AMOUNT = Decimal("10000000")  # ₹1,00,00,000
+MAX_DESCRIPTION = 200
+AMOUNT_FORMAT_ERROR = "Enter an amount in rupees, e.g. 450 or 450.50."
+
 app = Flask(__name__)
-# The fallback key is for local development only; set SECRET_KEY in production.
-app.secret_key = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
+# Set SECRET_KEY in production. Without it a random key is generated on every
+# start, so sessions do not survive a restart, but the key is never guessable.
+app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+# Lax stops browsers sending the session cookie on cross-site POSTs (CSRF).
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 with app.app_context():
     init_db()
@@ -146,7 +156,7 @@ def inr(value):
 
 
 FILTER_ERROR = "Enter valid dates, with From on or before To."
-ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 
 @app.template_filter("date_label")
@@ -220,9 +230,100 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+def _parse_amount(raw):
+    """Return (Decimal, None) for a valid rupee amount, else (None, error)."""
+    try:
+        amount = Decimal(raw)
+    except InvalidOperation:
+        return None, AMOUNT_FORMAT_ERROR
+    if not amount.is_finite() or amount.as_tuple().exponent < -2:
+        return None, AMOUNT_FORMAT_ERROR
+    if amount <= 0 or amount > MAX_AMOUNT:
+        return None, "Amount must be more than ₹0 and at most ₹1,00,00,000."
+    return amount, None
+
+
+def _validate_expense(form):
+    """Validate an expense form (used by add now, edit in Step 8).
+
+    Returns (values, clean, error). `values` always holds the stripped strings
+    the user typed, so the form can echo them back. When error is None, `clean`
+    holds the typed values ready to store ("amount" as a float); otherwise it
+    is None.
+    """
+    values = {
+        "amount": form.get("amount", "").strip(),
+        "category": form.get("category", "").strip(),
+        "date": form.get("date", "").strip(),
+        "description": form.get("description", "").strip(),
+    }
+
+    amount, error = _parse_amount(values["amount"])
+    if error:
+        return values, None, error
+
+    if values["category"] not in CATEGORIES:
+        return values, None, "Please choose a category."
+
+    try:
+        expense_date = _parse_date(values["date"])
+    except ValueError:
+        expense_date = None
+    if not expense_date:
+        return values, None, "Enter a valid date."
+    # Both are zero-padded ISO strings, so comparing them as text is safe.
+    if expense_date > date.today().isoformat():
+        return values, None, "The date can't be in the future."
+
+    if len(values["description"]) > MAX_DESCRIPTION:
+        return values, None, f"Description must be {MAX_DESCRIPTION} characters or fewer."
+
+    clean = {**values, "amount": float(round(amount, 2))}
+    return values, clean, None
+
+
+def _render_expense_form(values, error=None):
+    """Render the expense form (shared by add now, edit in Step 8)."""
+    return render_template(
+        "add_expense.html",
+        categories=CATEGORIES,
+        today=date.today().isoformat(),
+        max_amount=MAX_AMOUNT,
+        max_description=MAX_DESCRIPTION,
+        values=values,
+        error=error,
+    )
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return _render_expense_form(
+            {"amount": "", "category": "", "date": date.today().isoformat(),
+             "description": ""}
+        )
+
+    values, clean, error = _validate_expense(request.form)
+    if error:
+        return _render_expense_form(values, error)
+
+    try:
+        create_expense(
+            user_id,
+            clean["amount"],
+            clean["category"],
+            clean["date"],
+            clean["description"],
+        )
+    except sqlite3.IntegrityError:
+        # The session points at a user that no longer exists (foreign key).
+        session.clear()
+        return redirect(url_for("login"))
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
@@ -236,4 +337,4 @@ def delete_expense(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "1") == "1", port=5001)
