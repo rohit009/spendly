@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add expense — Spendly{% endblock %}
+{% block title %}{{ heading }} — Spendly{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/expense_form.css') }}">
@@ -12,8 +12,8 @@
     <div class="auth-container">
 
         <div class="auth-header">
-            <h1 class="auth-title">Add an expense</h1>
-            <p class="auth-subtitle">Record where every rupee went</p>
+            <h1 class="auth-title">{{ heading }}</h1>
+            <p class="auth-subtitle">{{ subtitle }}</p>
         </div>
 
         <div class="auth-card">
@@ -21,7 +21,7 @@
             <div class="auth-error" role="alert">{{ error }}</div>
             {% endif %}
 
-            <form method="POST" action="{{ url_for('add_expense') }}" class="expense-form">
+            <form method="POST" action="{{ form_action }}" class="expense-form">
                 <div class="form-group">
                     <label for="amount">Amount</label>
                     <div class="amount-field">
@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn-primary">Save expense</button>
+                    <button type="submit" class="btn-primary">{{ submit_label }}</button>
                     <a href="{{ url_for('profile') }}" class="btn-ghost">Cancel</a>
                 </div>
             </form>

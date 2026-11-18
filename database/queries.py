@@ -58,7 +58,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
     conn = get_db()
     try:
         rows = conn.execute(
-            "SELECT date, description, category, amount FROM expenses "
+            "SELECT id, date, description, category, amount FROM expenses "
             "WHERE user_id = ?"
             + clause
             + " ORDER BY date DESC, id DESC LIMIT ?",
@@ -69,6 +69,7 @@ def get_recent_transactions(user_id, limit=10, date_from=None, date_to=None):
 
     return [
         {
+            "id": row["id"],
             "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%d %b %Y"),
             "description": row["description"] or "",
             "category": row["category"],
@@ -161,3 +162,38 @@ def create_expense(user_id, amount, category, date, description=None):
     finally:
         conn.close()
 # === END SECTION 4 =========================================================
+
+
+# === SECTION 5: EDIT EXPENSE (Step 8) ======================================
+def get_expense(user_id, expense_id):
+    """Return one expense as a dict, or None if it is missing or not user_id's."""
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT id, amount, category, date, description FROM expenses "
+            "WHERE id = ? AND user_id = ?",
+            (expense_id, user_id),
+        ).fetchone()
+    finally:
+        conn.close()
+    return dict(row) if row else None
+
+
+def update_expense(user_id, expense_id, amount, category, date, description=None):
+    """Update one expense owned by user_id. Return True if a row was changed.
+
+    The caller must validate the values first. user_id and created_at are
+    never modified; a blank description is stored as NULL.
+    """
+    conn = get_db()
+    try:
+        cursor = conn.execute(
+            "UPDATE expenses SET amount = ?, category = ?, date = ?, "
+            "description = ? WHERE id = ? AND user_id = ?",
+            (amount, category, date, description or None, expense_id, user_id),
+        )
+        conn.commit()
+        return cursor.rowcount == 1
+    finally:
+        conn.close()
+# === END SECTION 5 =========================================================
