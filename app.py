@@ -5,16 +5,18 @@ import sqlite3
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import CATEGORIES, get_db, init_db, seed_db
 from database.queries import (
     create_expense,
     get_category_breakdown,
+    get_expense,
     get_recent_transactions,
     get_summary_stats,
     get_user_by_id,
+    update_expense,
 )
 
 MAX_AMOUNT = Decimal("10000000")  # ₹1,00,00,000
@@ -282,8 +284,9 @@ def _validate_expense(form):
     return values, clean, None
 
 
-def _render_expense_form(values, error=None):
-    """Render the expense form (shared by add now, edit in Step 8)."""
+def _render_expense_form(values, error=None, expense_id=None):
+    """Render the expense form: add mode, or edit mode when expense_id is given."""
+    editing = expense_id is not None
     return render_template(
         "add_expense.html",
         categories=CATEGORIES,
@@ -292,6 +295,16 @@ def _render_expense_form(values, error=None):
         max_description=MAX_DESCRIPTION,
         values=values,
         error=error,
+        form_action=(
+            url_for("edit_expense", id=expense_id)
+            if editing
+            else url_for("add_expense")
+        ),
+        heading="Edit expense" if editing else "Add an expense",
+        subtitle=(
+            "Fix a detail and save" if editing else "Record where every rupee went"
+        ),
+        submit_label="Save changes" if editing else "Save expense",
     )
 
 
@@ -333,9 +346,43 @@ def add_expense():
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    # Missing and not-owned look identical, so ids can't be probed.
+    expense = get_expense(user_id, id)
+    if expense is None:
+        abort(404)
+
+    if request.method == "GET":
+        return _render_expense_form(
+            {
+                "amount": f"{expense['amount']:.2f}",
+                "category": expense["category"],
+                "date": expense["date"],
+                "description": expense["description"] or "",
+            },
+            expense_id=id,
+        )
+
+    values, clean, error = _validate_expense(request.form)
+    if error:
+        return _render_expense_form(values, error, expense_id=id)
+
+    if not update_expense(
+        user_id,
+        id,
+        clean["amount"],
+        clean["category"],
+        clean["date"],
+        clean["description"],
+    ):
+        abort(404)
+    flash("Expense updated")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/delete")

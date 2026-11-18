@@ -79,6 +79,16 @@
     gap: 0.5rem;
 }
 
+.flash-success {
+    background: var(--accent-light);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 .filter-error {
     color: var(--danger);
     font-size: 0.875rem;
@@ -193,6 +203,17 @@
 
 .txn-table td.num { color: var(--ink); font-weight: 500; }
 
+.txn-table td.actions { white-space: nowrap; }
+
+.link-edit {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.link-edit:hover,
+.link-edit:focus-visible { text-decoration: underline; }
+
 /* Category badges */
 .badge {
     display: inline-block;
@@ -267,5 +288,6 @@
     .txn-table td { padding: 0.6rem 0.4rem; }
     .txn-table td { white-space: normal; }
     .txn-table td:first-child,
-    .txn-table td.num { white-space: nowrap; }
+    .txn-table td.num,
+    .txn-table td.actions { white-space: nowrap; }
 }

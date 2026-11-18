@@ -57,6 +57,7 @@ def login(client):
 
 # ---------------------------------------------------------------- unit tests
 
+
 def test_get_user_by_id_returns_profile_fields(client):
     user = get_user_by_id(demo_id())
     assert user["name"] == "Demo User"
@@ -99,6 +100,7 @@ def test_recent_transactions_newest_first_with_formatted_fields(client):
     rows = get_recent_transactions(uid)
     assert [r["description"] for r in rows] == ["Newest", "Middle", "Old"]
     assert rows[0] == {
+        "id": rows[0]["id"],
         "date": "20 Mar 2026",
         "description": "Newest",
         "category": "Bills",
@@ -128,8 +130,11 @@ def test_category_breakdown_pct_absorbs_rounding_remainder(client):
     uid = add_user()
     add_expenses(
         uid,
-        [(100, "Food", "2026-01-01", "a"), (100, "Bills", "2026-01-02", "b"),
-         (100, "Other", "2026-01-03", "c")],
+        [
+            (100, "Food", "2026-01-01", "a"),
+            (100, "Bills", "2026-01-02", "b"),
+            (100, "Other", "2026-01-03", "c"),
+        ],
     )
     rows = get_category_breakdown(uid)
     assert sum(r["pct"] for r in rows) == 100
@@ -148,6 +153,7 @@ def test_queries_are_scoped_to_the_user(client):
 
 
 # --------------------------------------------------------------- route tests
+
 
 def test_profile_redirects_when_logged_out(client):
     resp = client.get("/profile")
@@ -171,7 +177,11 @@ def test_profile_shows_seed_user_data(client):
 def test_profile_for_new_user_shows_empty_states(client):
     client.post(
         "/register",
-        data={"name": "Asha Rao", "email": "asha@example.com", "password": "password123"},
+        data={
+            "name": "Asha Rao",
+            "email": "asha@example.com",
+            "password": "password123",
+        },
     )
     client.post("/login", data={"email": "asha@example.com", "password": "password123"})
     html = client.get("/profile").get_data(as_text=True)
