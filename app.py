@@ -11,6 +11,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from database.db import CATEGORIES, get_db, init_db, seed_db
 from database.queries import (
     create_expense,
+    delete_expense_row,
     get_category_breakdown,
     get_expense,
     get_recent_transactions,
@@ -385,9 +386,27 @@ def edit_expense(id):
     return redirect(url_for("profile"))
 
 
-@app.route("/expenses/<int:id>/delete")
+@app.route("/expenses/<int:id>/delete", methods=["GET", "POST"])
 def delete_expense(id):
-    return "Delete expense — coming in Step 9"
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("login"))
+
+    # Missing and not-owned look identical, so ids can't be probed.
+    expense = get_expense(user_id, id)
+    if expense is None:
+        abort(404)
+
+    if request.method == "GET":
+        date_label = datetime.strptime(expense["date"], "%Y-%m-%d").strftime("%d %b %Y")
+        return render_template(
+            "delete_expense.html", expense=expense, date_label=date_label
+        )
+
+    if not delete_expense_row(user_id, id):
+        abort(404)
+    flash("Expense deleted")
+    return redirect(url_for("profile"))
 
 
 if __name__ == "__main__":

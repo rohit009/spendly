@@ -214,6 +214,16 @@
 .link-edit:hover,
 .link-edit:focus-visible { text-decoration: underline; }
 
+.link-delete {
+    color: var(--danger);
+    font-weight: 500;
+    text-decoration: none;
+    margin-left: 0.75rem;
+}
+
+.link-delete:hover,
+.link-delete:focus-visible { text-decoration: underline; }
+
 /* Category badges */
 .badge {
     display: inline-block;
