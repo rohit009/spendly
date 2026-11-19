@@ -8,12 +8,10 @@
 ![pytest](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)
 ![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-D97757)
 
-I'm a senior iOS engineer, and this was my first full web backend. I built it while following CampusX's [Agentic Coding using Claude Code](https://youtube.com/playlist?list=PLKnIA16_RmvaYH3poI0oJvbDF4zEvpq8W) course. The app itself is deliberately simple. The interesting part is **how** it was built: each feature started as a written spec, went onto its own branch, was tested and reviewed by Claude Code subagents, and was merged through a pull request.
+I'm a senior iOS engineer, and this is a full web backend personal project I built while following CampusX's [Agentic Coding using Claude Code](https://youtube.com/playlist?list=PLKnIA16_RmvaYH3poI0oJvbDF4zEvpq8W) course. The app itself is deliberately simple. The interesting part is **how** it was built: each feature started as a written spec, went onto its own branch, was tested and reviewed by Claude Code subagents, and was merged through a pull request.
 
 <p align="center">
-  <img src="docs/screenshots/profile-desktop.png" alt="Spendly dashboard on desktop" width="62%">
-  &nbsp;
-  <img src="docs/screenshots/profile-mobile.png" alt="Spendly dashboard on mobile" width="26%">
+  <img src="docs/screenshots/landing-hero.png" alt="Spendly landing page" width="90%">
 </p>
 
 ---
@@ -32,6 +30,18 @@ I'm a senior iOS engineer, and this was my first full web backend. I built it wh
 - **Indian number formatting** through a custom Jinja filter, e.g. `₹1,23,456.00`.
 - **Responsive layout** for desktop and mobile.
 - **Analytics:** placeholder page, coming soon.
+
+## Screenshots
+
+| Dashboard | Date-range filter |
+|---|---|
+| ![Dashboard with transactions, edit and delete actions](docs/screenshots/dashboard.png) | ![Dashboard filtered to November](docs/screenshots/dashboard-date-filter.png) |
+| **Add expense** | **New account (empty state)** |
+| ![Add expense form](docs/screenshots/add-expense.png) | ![Dashboard for a new user with no expenses](docs/screenshots/dashboard-empty.png) |
+| **Create account** | **Sign in** |
+| ![Registration form](docs/screenshots/register.png) | ![Sign-in form](docs/screenshots/sign-in.png) |
+| **Landing page** | **Analytics (coming soon)** |
+| ![Landing page features and call to action](docs/screenshots/landing-features.png) | ![Analytics coming-soon page](docs/screenshots/analytics-coming-soon.png) |
 
 ## How it was built with Claude Code
 
@@ -107,4 +117,4 @@ Coming from iOS, I asked Claude Code to explain the backend in terms I already k
 
 ## Credits
 
-Built by following CampusX's [Agentic Coding using Claude Code](https://youtube.com/playlist?list=PLKnIA16_RmvaYH3poI0oJvbDF4zEvpq8W) course. The original starter project is [campusx-official/spendly](https://github.com/campusx-official/spendly).
+Built by following CampusX's [Agentic Coding using Claude Code](https://youtube.com/playlist?list=PLKnIA16_RmvaYH3poI0oJvbDF4zEvpq8W) course.
