@@ -197,3 +197,19 @@ def update_expense(user_id, expense_id, amount, category, date, description=None
     finally:
         conn.close()
 # === END SECTION 5 =========================================================
+
+
+# === SECTION 6: DELETE EXPENSE (Step 9) ====================================
+def delete_expense_row(user_id, expense_id):
+    """Delete one expense owned by user_id. Return True if a row was deleted."""
+    conn = get_db()
+    try:
+        cursor = conn.execute(
+            "DELETE FROM expenses WHERE id = ? AND user_id = ?",
+            (expense_id, user_id),
+        )
+        conn.commit()
+        return cursor.rowcount == 1
+    finally:
+        conn.close()
+# === END SECTION 6 =========================================================
